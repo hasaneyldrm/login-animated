@@ -5,7 +5,11 @@
   --text: #0a0a0a;
   --muted: #71717a;
   --border: #e4e4e7;
-  --input-bg: #ececec;
+  --input-bg: #ffffff;
+  --panel-bg: #ffffff;
+  --panel-hover: #fafafa;
+  --grid-line: rgba(0,0,0,0.04);
+  --orb: rgba(255,255,255,0.5);
   --primary: #0a0a0a;
   --primary-foreground: #fafafa;
   --purple: #6C3FF5;
@@ -14,6 +18,44 @@
   --yellow: #E8D754;
   --eye-bg: #ffffff;
   --pupil: #2D2D2D;
+  --footer-link: rgba(0,0,0,0.45);
+  --error-color: #b91c1c;
+  --error-bg: rgba(254, 226, 226, 0.5);
+  --error-border: rgba(220, 38, 38, 0.2);
+  --info-color: #1d4ed8;
+  --info-bg: rgba(219, 234, 254, 0.45);
+  --info-border: rgba(59, 130, 246, 0.25);
+  --focus-ring: rgba(10,10,10,0.06);
+}
+
+html.dark {
+  --bg-grad-1: #0b0b10;
+  --bg-grad-2: #14141c;
+  --bg-grad-3: #1c1c26;
+  --text: #f5f5f7;
+  --muted: #a1a1aa;
+  --border: #2a2a33;
+  --input-bg: #18181f;
+  --panel-bg: #0e0e13;
+  --panel-hover: #1a1a22;
+  --grid-line: rgba(255,255,255,0.05);
+  --orb: rgba(108, 63, 245, 0.18);
+  --primary: #f5f5f7;
+  --primary-foreground: #0a0a0a;
+  --purple: #8B65FF;
+  --black: #1a1a22;
+  --orange: #FFAE85;
+  --yellow: #F0E170;
+  --eye-bg: #f5f5f7;
+  --pupil: #0a0a0a;
+  --footer-link: rgba(255,255,255,0.45);
+  --error-color: #fca5a5;
+  --error-bg: rgba(127, 29, 29, 0.25);
+  --error-border: rgba(248, 113, 113, 0.35);
+  --info-color: #93c5fd;
+  --info-bg: rgba(30, 58, 138, 0.25);
+  --info-border: rgba(96, 165, 250, 0.35);
+  --focus-ring: rgba(245,245,247,0.12);
 }
 
 * { box-sizing: border-box; }
@@ -24,8 +66,9 @@ html, body {
   height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: var(--text);
-  background: #fff;
+  background: var(--panel-bg);
   -webkit-font-smoothing: antialiased;
+  transition: background-color .25s ease, color .25s ease;
 }
 
 .page {
@@ -57,8 +100,8 @@ html, body {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 22px 22px;
   pointer-events: none;
   z-index: 0;
@@ -69,7 +112,7 @@ html, body {
   top: 18%;
   right: 12%;
   width: 320px; height: 320px;
-  background: rgba(255,255,255,0.5);
+  background: var(--orb);
   border-radius: 50%;
   filter: blur(80px);
   pointer-events: none;
@@ -94,6 +137,7 @@ html, body {
   justify-content: center;
   color: var(--text);
 }
+html.dark .brand-dot { background: rgba(255,255,255,0.08); }
 
 .stage-inner {
   flex: 1;
@@ -225,11 +269,36 @@ html, body {
 
 /* ============ RIGHT (panel) ============ */
 .panel {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 48px 32px;
-  background: #fff;
+  background: var(--panel-bg);
+  transition: background-color .25s ease;
+}
+
+.theme-toggle {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  transition: background-color .15s ease, border-color .15s ease, transform .25s ease;
+}
+.theme-toggle:hover { background: var(--panel-hover); }
+.theme-toggle:active { transform: scale(0.94); }
+@media (max-width: 1023px) {
+  .theme-toggle { top: 16px; right: 16px; }
 }
 .panel-inner { width: 100%; max-width: 420px; }
 
@@ -279,17 +348,18 @@ html, body {
   width: 100%;
   height: 48px;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--input-bg);
   border-radius: 10px;
   padding: 0 14px;
   font-size: 14px;
   outline: none;
-  transition: border-color .15s ease, box-shadow .15s ease;
+  transition: border-color .15s ease, box-shadow .15s ease, background-color .25s ease;
   color: var(--text);
 }
+.field input::placeholder { color: var(--muted); }
 .field input:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(10,10,10,0.06);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .password-wrap { position: relative; }
@@ -347,7 +417,7 @@ html, body {
   height: 48px;
   margin-top: 24px;
   border: 1px solid var(--border);
-  background: #fff;
+  background: var(--panel-bg);
   border-radius: 10px;
   font-weight: 500;
   font-size: 15px;
@@ -357,21 +427,32 @@ html, body {
   gap: 8px;
   cursor: pointer;
   color: var(--text);
+  transition: background-color .15s ease;
 }
-.btn-outline:hover { background: #fafafa; }
+.btn-outline:hover { background: var(--panel-hover); }
 
 .error-box {
   padding: 10px 12px;
   font-size: 13px;
-  color: #b91c1c;
-  background: rgba(254, 226, 226, 0.5);
-  border: 1px solid rgba(220, 38, 38, 0.2);
+  color: var(--error-color);
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
   border-radius: 8px;
 }
+.error-box.shake {
+  animation: errorShake .5s cubic-bezier(.36,.07,.19,.97) both;
+}
 .error-box.info {
-  color: #1d4ed8;
-  background: rgba(219, 234, 254, 0.45);
-  border-color: rgba(59, 130, 246, 0.25);
+  color: var(--info-color);
+  background: var(--info-bg);
+  border-color: var(--info-border);
+}
+
+@keyframes errorShake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
 }
 
 .signup {
@@ -386,7 +467,7 @@ html, body {
   display: flex;
   gap: 32px;
   font-size: 13px;
-  color: rgba(0,0,0,0.45);
+  color: var(--footer-link);
   z-index: 30;
 }
 .footer-links a {
@@ -394,3 +475,57 @@ html, body {
   text-decoration: none;
 }
 .footer-links a:hover { color: var(--text); }
+
+/* ============ ERROR ANIMATIONS ============ */
+/* Purple — "bzzzzt" head buzz. transform-origin: bottom center on .char means
+   the base stays planted and only the top edge vibrates side to side. */
+.char-purple.error-anim {
+  animation: purpleHeadBuzz 1.4s cubic-bezier(.45, .05, .55, .95) 1;
+}
+@keyframes purpleHeadBuzz {
+  0%   { transform: skewX(0deg) skewY(0deg); }
+  15%  { transform: skewX(-2.5deg) skewY(0.5deg); }
+  35%  { transform: skewX(2deg) skewY(-0.3deg); }
+  55%  { transform: skewX(-1.5deg) skewY(0.4deg); }
+  75%  { transform: skewX(1deg); }
+  100% { transform: skewX(0deg) skewY(0deg); }
+}
+
+/* Z mouth — "bzzzt" electric-shock mouth (Z-shape via SVG mask) */
+.mouth.sad {
+  width: 50px;
+  height: 18px;
+  background: var(--pupil);
+  border: 0;
+  border-radius: 0;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 18'><polyline points='4,4 46,4 4,14 46,14' fill='none' stroke='black' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>") center / contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 18'><polyline points='4,4 46,4 4,14 46,14' fill='none' stroke='black' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/></svg>") center / contain no-repeat;
+}
+
+/* Tear drops (orange + yellow during error) */
+.char.crying::after {
+  content: "";
+  position: absolute;
+  width: 8px;
+  height: 14px;
+  background: #6CBEFF;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+  left: var(--tear-x, 60%);
+  top: var(--tear-y, 60%);
+  opacity: 0;
+  animation: tearDrop 1.2s ease-in 1;
+  pointer-events: none;
+}
+@keyframes tearDrop {
+  0% { transform: translateY(0); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateY(60px); opacity: 0; }
+}
+
+.char-orange.crying { --tear-x: 92px; --tear-y: 110px; }
+.char-yellow.crying { --tear-x: 62px; --tear-y: 60px; }
+
+/* Sad eyes (purple + black) — eyes droop down/outward */
+.eye.sad-eye .pupil {
+  transform: translateY(3px) !important;
+}

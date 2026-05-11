@@ -29,6 +29,11 @@
   const errorBox = document.getElementById('errorBox');
   const submitBtn = document.getElementById('submitBtn');
   const forgotPass = document.getElementById('forgotPass');
+  const themeToggle = document.getElementById('themeToggle');
+  const iconSun = document.getElementById('iconSun');
+  const iconMoon = document.getElementById('iconMoon');
+  const charactersEl = document.getElementById('characters');
+  const yellowMouthEl = yellowMouth;
 
   // ----- state -----
   const state = {
@@ -39,6 +44,7 @@
     passwordLen: 0,
     isLookingAtEachOther: false,
     isPurplePeeking: false,
+    isErroring: false,
   };
 
   // ----- helpers -----
@@ -76,6 +82,10 @@
   let pendingFrame = false;
   const render = () => {
     pendingFrame = false;
+
+    // While the error animation is playing, CSS owns the char transforms.
+    // Skip body writes so we don't stomp on the keyframes.
+    if (state.isErroring) return;
 
     const { isTyping, showPassword, passwordLen, isLookingAtEachOther, isPurplePeeking } = state;
     const pwHidden = passwordLen > 0 && !showPassword;
@@ -279,11 +289,74 @@
     tick();
   }
 
+  // ----- error animation (per-character, subtle) -----
+  let errorBodyTimer = null;
+  let errorMoodTimer = null;
+  const clearErrorClasses = () => {
+    charPurple.classList.remove('error-anim');
+    charOrange.classList.remove('crying');
+    charYellow.classList.remove('crying');
+    yellowMouthEl.classList.remove('sad');
+    purpleEye1.classList.remove('sad-eye');
+    purpleEye2.classList.remove('sad-eye');
+    blackEye1.classList.remove('sad-eye');
+    blackEye2.classList.remove('sad-eye');
+  };
+
+  const triggerErrorAnimation = () => {
+    if (errorBodyTimer) { clearTimeout(errorBodyTimer); errorBodyTimer = null; }
+    if (errorMoodTimer) { clearTimeout(errorMoodTimer); errorMoodTimer = null; }
+    clearErrorClasses();
+
+    // hand off purple's transform to CSS animation
+    state.isErroring = true;
+    charPurple.style.transform = '';
+
+    // force reflow so the animation can restart cleanly on rapid retries
+    void charPurple.offsetWidth;
+
+    charPurple.classList.add('error-anim');
+
+    // emotional reactions (no body shake on others)
+    yellowMouthEl.classList.add('sad');
+    purpleEye1.classList.add('sad-eye');
+    purpleEye2.classList.add('sad-eye');
+    blackEye1.classList.add('sad-eye');
+    blackEye2.classList.add('sad-eye');
+    charOrange.classList.add('crying');
+    charYellow.classList.add('crying');
+
+    errorBox.classList.remove('shake');
+    void errorBox.offsetWidth;
+    errorBox.classList.add('shake');
+
+    // end body animation, return control to render()
+    errorBodyTimer = setTimeout(() => {
+      charPurple.classList.remove('error-anim');
+      charOrange.classList.remove('crying');
+      charYellow.classList.remove('crying');
+      state.isErroring = false;
+      requestRender();
+      errorBodyTimer = null;
+    }, 1300);
+
+    // sad mood lingers a bit longer
+    errorMoodTimer = setTimeout(() => {
+      yellowMouthEl.classList.remove('sad');
+      purpleEye1.classList.remove('sad-eye');
+      purpleEye2.classList.remove('sad-eye');
+      blackEye1.classList.remove('sad-eye');
+      blackEye2.classList.remove('sad-eye');
+      errorMoodTimer = null;
+    }, 2200);
+  };
+
   // ----- form submit -----
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     errorBox.hidden = true;
     errorBox.classList.remove('info');
+    errorBox.classList.remove('shake');
     errorBox.textContent = 'Invalid email or password. Please try again.';
     submitBtn.disabled = true;
     submitBtn.textContent = 'Signing in...';
@@ -292,6 +365,7 @@
       alert('Login successful!');
     } else {
       errorBox.hidden = false;
+      triggerErrorAnimation();
     }
     submitBtn.disabled = false;
     submitBtn.textContent = 'Log in';
@@ -321,6 +395,39 @@
       return;
     }
     showInfo(`Password reset link sent to ${email}.`);
+  });
+
+  // ----- theme (dark mode) -----
+  const THEME_KEY = 'login-animated.theme';
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
+
+  const applyTheme = (theme) => {
+    const isDark = theme === 'dark';
+    document.documentElement.classList.toggle('dark', isDark);
+    iconSun.style.display = isDark ? 'none' : '';
+    iconMoon.style.display = isDark ? '' : 'none';
+    themeToggle.setAttribute('aria-label', isDark ? 'Açık temaya geç' : 'Koyu temaya geç');
+  };
+
+  const getInitialTheme = () => {
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === 'dark' || saved === 'light') return saved;
+    return prefersDark.matches ? 'dark' : 'light';
+  };
+
+  let currentTheme = getInitialTheme();
+  applyTheme(currentTheme);
+
+  themeToggle.addEventListener('click', () => {
+    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    localStorage.setItem(THEME_KEY, currentTheme);
+    applyTheme(currentTheme);
+  });
+
+  prefersDark.addEventListener('change', (e) => {
+    if (localStorage.getItem(THEME_KEY)) return; // user override wins
+    currentTheme = e.matches ? 'dark' : 'light';
+    applyTheme(currentTheme);
   });
 
   // initial paint
